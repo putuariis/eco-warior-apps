@@ -1,0 +1,3 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+export async function POST(req:Request){const {actionId,type}=await req.json();if(!actionId||!['LIKE','DISLIKE','REPORT'].includes(type))return NextResponse.json({error:'Invalid vote'},{status:400});if(process.env.NEXT_PUBLIC_DEMO_MODE==='true'||!process.env.DATABASE_URL)return NextResponse.json({ok:true,demo:true});const user=await prisma.user.findFirst({orderBy:{createdAt:'asc'}});if(!user)return NextResponse.json({error:'User not found'},{status:404});try{const vote=await prisma.vote.create({data:{actionId,userId:user.id,type}});return NextResponse.json({ok:true,id:vote.id});}catch{return NextResponse.json({error:'You already voted on this action.'},{status:409});}}
